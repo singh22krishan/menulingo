@@ -21,6 +21,8 @@ This repository is a standalone portfolio version maintained by **Krishan Singh*
 
 English · French · Spanish · Chinese · Punjabi · Arabic · Tagalog · Italian · German · Urdu
 
+The API accepts either these language names or their short language codes and stores the returned menu by language code.
+
 ## Architecture
 
 ```text
@@ -38,11 +40,20 @@ Next.js App Router
 
 ## Tech Stack
 
-**Next.js · TypeScript · React · Supabase · OpenAI API · Papa Parse · SheetJS/XLSX · QR Codes · REST APIs**
+**Next.js · TypeScript · React · Supabase · OpenAI API · Papa Parse · SheetJS/XLSX · QR Codes · REST APIs · GitHub Actions**
 
-## Security
+## Security / Reliability Improvements
 
-All external credentials are supplied through environment variables. No Supabase service keys, OpenAI keys, or OCR keys are committed.
+- All service credentials are supplied through environment variables; none are committed.
+- Translation requests are limited to 50 menu items, 10 supported languages, and bounded text lengths.
+- Dish names are validated before external API calls.
+- OCR uploads are limited to 5 MB and restricted to JPEG, PNG, or PDF MIME types.
+- OCR provider calls use a 30-second timeout.
+- Provider response details and internal exception messages are not returned to clients.
+- Published menu slugs use 12 random bytes for stronger URL unpredictability.
+- GitHub Actions verifies that a fresh dependency install and Next.js production build succeed.
+
+These application-level limits reduce accidental abuse, but a public deployment should still add platform-level authentication and/or rate limiting for cost-generating translation/OCR endpoints.
 
 ## Local Setup
 
@@ -72,6 +83,15 @@ Create a `menus` table with at least:
 - `languages` — text[]
 - `created_at` — timestamp
 
+## Build Verification
+
+```bash
+npm install
+npm run build
+```
+
+A GitHub Actions workflow runs the same production build on pushes and pull requests using placeholder configuration values only.
+
 ## Improvements Made for the Portfolio Version
 
-The original classroom source had a route mismatch between generated QR URLs and the public menu route, omitted a declared QR dependency, and referenced a translation endpoint that was not present in the visible source tree. This version fixes those issues and keeps configuration outside source code.
+The original classroom source had a route mismatch between generated QR URLs and the public menu route, omitted a declared QR dependency, and referenced a translation endpoint that was not present in the visible source tree. This version fixes those issues, keeps configuration outside source code, validates external-service inputs, and includes reproducible build verification.
