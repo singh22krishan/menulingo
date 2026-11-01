@@ -3,8 +3,20 @@ import OpenAI from 'openai';
 import { serverSupabase } from '@/lib/supabase';
 import crypto from 'node:crypto';
 
-const ALLOWED_LANGUAGES = new Set(['en', 'fr', 'es', 'de', 'it', 'pt', 'hi', 'pa']);
+const LANGUAGE_CODES: Record<string, string> = {
+  english: 'en', en: 'en',
+  french: 'fr', fr: 'fr',
+  spanish: 'es', es: 'es',
+  chinese: 'zh', zh: 'zh',
+  punjabi: 'pa', pa: 'pa',
+  arabic: 'ar', ar: 'ar',
+  tagalog: 'tl', tl: 'tl',
+  italian: 'it', it: 'it',
+  german: 'de', de: 'de',
+  urdu: 'ur', ur: 'ur',
+};
 const MAX_ITEMS = 50;
+const MAX_LANGUAGES = 10;
 const MAX_TEXT = 500;
 
 function cleanText(value: unknown, max = MAX_TEXT) {
@@ -24,12 +36,12 @@ export async function POST(req: Request) {
     if (!Array.isArray(items) || items.length < 1 || items.length > MAX_ITEMS) {
       return NextResponse.json({ error: `items must contain between 1 and ${MAX_ITEMS} entries` }, { status: 400 });
     }
-    if (!Array.isArray(languages) || languages.length < 1 || languages.length > 4) {
-      return NextResponse.json({ error: 'languages must contain between 1 and 4 values' }, { status: 400 });
+    if (!Array.isArray(languages) || languages.length < 1 || languages.length > MAX_LANGUAGES) {
+      return NextResponse.json({ error: `languages must contain between 1 and ${MAX_LANGUAGES} values` }, { status: 400 });
     }
 
-    const languageCodes = [...new Set(languages.map((value) => cleanText(value, 10).toLowerCase()))];
-    if (languageCodes.some((code) => !ALLOWED_LANGUAGES.has(code))) {
+    const languageCodes = [...new Set(languages.map((value) => LANGUAGE_CODES[cleanText(value, 20).toLowerCase()]))];
+    if (languageCodes.some((code) => !code)) {
       return NextResponse.json({ error: 'One or more requested languages are unsupported' }, { status: 400 });
     }
 
